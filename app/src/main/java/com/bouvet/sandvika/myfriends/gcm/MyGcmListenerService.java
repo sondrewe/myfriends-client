@@ -1,4 +1,4 @@
-package com.bouvet.sandvika.myfriends.services;
+package com.bouvet.sandvika.myfriends.gcm;
 
 
 import android.os.Bundle;

@@ -1,8 +1,7 @@
-package com.bouvet.sandvika.myfriends.services;
+package com.bouvet.sandvika.myfriends.gcm;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.provider.SyncStateContract;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.bouvet.sandvika.myfriends.R;

@@ -1,4 +1,4 @@
-package com.bouvet.sandvika.myfriends.rest;
+package com.bouvet.sandvika.myfriends.http;
 
 import com.bouvet.sandvika.myfriends.model.User;
 
