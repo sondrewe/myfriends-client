@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">MyFriends</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="gcm_defaultSenderId">332960777332</string>
+    <string name="gcm_server_api_key">AIzaSyBimuIcdcuL_1v_jdNMdfVWiavb3HIIns4</string>
+</resources>
