@@ -4,12 +4,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import com.bouvet.sandvika.myfriends.model.User;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
@@ -29,7 +32,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private final static String BASE_URL = "http://10.4.100.28:8080";
 
@@ -37,6 +40,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     private BroadcastReceiver messageReceiver;
     private MyFriendsRestService service;
     private User user;
+    private GoogleMap googleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,24 +147,35 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        try {
-            googleMap.setMyLocationEnabled(true);
-        } catch (SecurityException e) {
-            System.out.println(e.getMessage());
+        this.googleMap = googleMap;
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+        } else {
+            this.googleMap.setMyLocationEnabled(true);
         }
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(5000);
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
 
-        try {
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
-        } catch (SecurityException e) {
-            System.out.println("[onConnected] Does not have required permissions");
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode != 0) {
+            throw new RuntimeException("Unknown request code received");
+        }
+        for (String permission : permissions) {
+            if (android.Manifest.permission.ACCESS_FINE_LOCATION.equals(permission)) {
+                LocationRequest locationRequest = new LocationRequest();
+                locationRequest.setInterval(5000);
+                locationRequest.setFastestInterval(5000);
+                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+                this.googleMap.setMyLocationEnabled(true);
+            }
         }
     }
 
