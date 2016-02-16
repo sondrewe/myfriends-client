@@ -31,7 +31,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private final static String BASE_URL = "http://192.168.1.124:8080";
+    private final static String BASE_URL = "http://10.4.100.28:8080";
 
     private GoogleApiClient googleApiClient;
     private BroadcastReceiver messageReceiver;
@@ -86,18 +86,18 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     private User createUser(String regKey) {
 
-        final User user = new User("kris", "kris", "kris", regKey);
+        final User user = new User("kris", "Kristoffer", "Mysen", regKey);
 
         Call<Void> call = service.createUser(user);
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                System.out.println("Success!!!");
+                System.out.println("[createUser] Success!!!");
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                System.out.println("Failed!!!!!");
+                System.out.println("[createUser] Failed!!!!!");
             }
         });
 
@@ -159,7 +159,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         try {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         } catch (SecurityException e) {
-            System.out.println("hmm");
+            System.out.println("[onConnected] Does not have required permissions");
         }
     }
 
@@ -182,12 +182,12 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
             locationChanged.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    System.out.println("success!!");
+                    System.out.println("[onLocationChanged] success!!");
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    System.out.println("Failure!!");
+                    System.out.println("[onLocationChanged] failure!!");
                 }
             });
         }
