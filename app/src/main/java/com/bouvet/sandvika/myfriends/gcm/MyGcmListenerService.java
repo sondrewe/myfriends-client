@@ -9,6 +9,8 @@ public class MyGcmListenerService extends GcmListenerService{
 
     @Override
     public void onMessageReceived(String from, Bundle data) {
+        // TODO: Legg til logikk for å vise varsel
+        System.out.println("[onMessageReceived]");
         super.onMessageReceived(from, data);
     }
 }

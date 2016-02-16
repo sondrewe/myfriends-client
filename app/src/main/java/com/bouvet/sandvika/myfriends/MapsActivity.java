@@ -71,7 +71,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                System.out.println("onreceive");
+                System.out.println("Received broadcastmessage from Registration Intent");
 
                 String key = intent.getStringExtra(RegistrationIntentService.TOKEN);
                 user = createUser(key);
@@ -86,7 +86,8 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     private User createUser(String regKey) {
 
-        final User user = new User("kris", "Kristoffer", "Mysen", regKey);
+//        final User user = new User("kris", "Kristoffer", "Mysen", regKey);
+        final User user = new User("sondrew", "Sondre", "Engell", regKey);
 
         Call<Void> call = service.createUser(user);
         call.enqueue(new Callback<Void>() {
