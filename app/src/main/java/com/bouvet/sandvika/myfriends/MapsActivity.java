@@ -179,13 +179,15 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     }
 
     private void configureLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(5000);
         locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         this.googleMap.setMyLocationEnabled(true);
     }
