@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 
 import com.bouvet.sandvika.myfriends.model.User;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
@@ -148,15 +147,23 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-        } else {
-            this.googleMap.setMyLocationEnabled(true);
+
+        tryToConfigureLocationUpdates();
+    }
+
+    private void tryToConfigureLocationUpdates() {
+        if (googleMap != null && googleApiClient.isConnected()) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+            } else {
+                configureLocationUpdates();
+            }
         }
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        tryToConfigureLocationUpdates();
     }
 
     @Override
@@ -166,17 +173,21 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         }
         for (String permission : permissions) {
             if (android.Manifest.permission.ACCESS_FINE_LOCATION.equals(permission)) {
-                LocationRequest locationRequest = new LocationRequest();
-                locationRequest.setInterval(5000);
-                locationRequest.setFastestInterval(5000);
-                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
-                this.googleMap.setMyLocationEnabled(true);
+                configureLocationUpdates();
             }
         }
+    }
+
+    private void configureLocationUpdates() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+        this.googleMap.setMyLocationEnabled(true);
     }
 
     @Override
