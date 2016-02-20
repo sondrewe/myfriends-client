@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
+import com.bouvet.sandvika.myfriends.Dagger.App;
 import com.bouvet.sandvika.myfriends.gcm.MyGcmListenerService;
 import com.bouvet.sandvika.myfriends.model.User;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
@@ -27,6 +29,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
+import javax.inject.Inject;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -35,19 +39,26 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
-    private final static String BASE_URL = "http://myfriends-server.cfapps.io";
+
+    @Inject
+    Retrofit retrofit;
+    @Inject
+     SharedPreferences sharedPreferences;
+
+    private MyFriendsRestService service;
 
     private GoogleApiClient googleApiClient;
     private BroadcastReceiver messageReceiver;
-    private MyFriendsRestService service;
-    private User user;
+
+
     private GoogleMap googleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
+        ((App) getApplication()).getNetComponent().inject(this);
+        service = retrofit.create(MyFriendsRestService.class);
         //region Map init
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -63,13 +74,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
                 .build();
         //endregion
 
-        //region Retrofit init
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
 
-        service = retrofit.create(MyFriendsRestService.class);
         //endregion
 
         //region MessageReceiver init
@@ -78,11 +83,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 System.out.println("Received broadcastmessage from Registration Intent");
-                if(action == RegistrationIntentService.ID_TOKEN_RECEIVED) {
 
-                    String key = intent.getStringExtra(RegistrationIntentService.TOKEN);
-                    user = createUser(key);
-                }
                 if(action == MyGcmListenerService.BroadCastRecieved) {
                     String key = intent.getStringExtra(MyGcmListenerService.BroadCastRecievedMessage);
                     showUserNearMessage(key);
@@ -92,8 +93,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
         //endregion
 
-        Intent intent = new Intent(this, RegistrationIntentService.class);
-        startService(intent);
+
 
     }
     private void showUserNearMessage(String message) {
@@ -103,27 +103,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     }
 
-    private User createUser(String regKey) {
 
-//        final User user = new User("kris", "Kristoffer", "Mysen", regKey);
-        final User user = new User("sondrew", "Sondre", "Engell", regKey);
-
-        Call<Void> call = service.createUser(user);
-        call.enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                System.out.println("[createUser] Success!!!");
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                System.out.println("[createUser] Failed!!!!!");
-            }
-        });
-
-        return user;
-
-    }
 
     @Override
     protected void onStart() {
@@ -133,8 +113,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     @Override
     protected void onResume() {
-        IntentFilter intentFilter = new IntentFilter(RegistrationIntentService.ID_TOKEN_RECEIVED);
-        intentFilter.addAction(MyGcmListenerService.BroadCastRecieved);
+        IntentFilter intentFilter = new IntentFilter(MyGcmListenerService.BroadCastRecieved);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
@@ -222,10 +201,10 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     @Override
     public void onLocationChanged(final Location location) {
-
+        String user = sharedPreferences.getString("userName",null);
         if (user != null) {
 
-            Call<Void> locationChanged = service.updateLocation(user.getUserName(), new double[]{location.getLatitude(), location.getLongitude()});
+            Call<Void> locationChanged = service.updateLocation(user, new double[]{location.getLatitude(), location.getLongitude()});
             locationChanged.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
