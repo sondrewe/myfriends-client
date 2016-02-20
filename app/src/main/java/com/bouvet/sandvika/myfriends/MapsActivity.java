@@ -9,10 +9,12 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
+import com.bouvet.sandvika.myfriends.gcm.MyGcmListenerService;
 import com.bouvet.sandvika.myfriends.model.User;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
 import com.bouvet.sandvika.myfriends.gcm.RegistrationIntentService;
@@ -33,7 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
-    private final static String BASE_URL = "http://10.4.100.28:8080";
+    private final static String BASE_URL = "http://myfriends-server.cfapps.io";
 
     private GoogleApiClient googleApiClient;
     private BroadcastReceiver messageReceiver;
@@ -74,16 +76,30 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
                 System.out.println("Received broadcastmessage from Registration Intent");
+                if(action == RegistrationIntentService.ID_TOKEN_RECEIVED) {
 
-                String key = intent.getStringExtra(RegistrationIntentService.TOKEN);
-                user = createUser(key);
+                    String key = intent.getStringExtra(RegistrationIntentService.TOKEN);
+                    user = createUser(key);
+                }
+                if(action == MyGcmListenerService.BroadCastRecieved) {
+                    String key = intent.getStringExtra(MyGcmListenerService.BroadCastRecievedMessage);
+                    showUserNearMessage(key);
+                }
             }
         };
+
         //endregion
 
         Intent intent = new Intent(this, RegistrationIntentService.class);
         startService(intent);
+
+    }
+    private void showUserNearMessage(String message) {
+
+        Snackbar.make(findViewById(android.R.id.content),message, Snackbar.LENGTH_LONG)
+                .show();
 
     }
 
@@ -118,6 +134,8 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     @Override
     protected void onResume() {
         IntentFilter intentFilter = new IntentFilter(RegistrationIntentService.ID_TOKEN_RECEIVED);
+        intentFilter.addAction(MyGcmListenerService.BroadCastRecieved);
+
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
         super.onResume();
