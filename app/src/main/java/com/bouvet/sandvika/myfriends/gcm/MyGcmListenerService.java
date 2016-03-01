@@ -10,30 +10,34 @@ import android.support.v4.app.NotificationCompat;
 import com.bouvet.sandvika.myfriends.R;
 import com.google.android.gms.gcm.GcmListenerService;
 
-public class MyGcmListenerService extends GcmListenerService{
+public class MyGcmListenerService extends GcmListenerService {
 
-    public  static final String BroadCastRecieved = "BroadCastRecieved";
-    public  static final String BroadCastRecievedMessage = "BroadCastRecievedMessage";
+    public static final String BroadCastRecieved = "BroadCastRecieved";
+    public static final String BroadCastRecievedMessage = "BroadCastRecievedMessage";
+
     @Override
     public void onMessageReceived(String from, Bundle data) {
         // TODO: Legg til logikk for å vise varsel
-        System.out.println("[onMessageReceived]");
-        super.onMessageReceived(from, data);
-        Intent broadCastIntent = new Intent(BroadCastRecieved).putExtra(BroadCastRecievedMessage, data.getString("message"));
-        LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark)
-                        .setContentTitle("MyFriends")
-                        .setContentText(data.getString("message"));
+        if (((String) data.get("type")).equalsIgnoreCase("POSITION_NOTIFICATION")) {
+            System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION");
+        } else if (((String) data.get("type")).equalsIgnoreCase("PROXIMITY_NOTIFICATION")) {
+            System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION");
+            super.onMessageReceived(from, data);
+            Intent broadCastIntent = new Intent(BroadCastRecieved).putExtra(BroadCastRecievedMessage, data.getString("message"));
+            LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
+            NotificationCompat.Builder mBuilder =
+                    new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark)
+                            .setContentTitle("MyFriends")
+                            .setContentText(data.getString("message"));
 
-        // Sets an ID for the notification
-        int mNotificationId = 001;
+            // Sets an ID for the notification
+            int mNotificationId = 001;
 // Gets an instance of the NotificationManager service
-        NotificationManager mNotifyMgr =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationManager mNotifyMgr =
+                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 // Builds the notification and issues it.
-        mNotifyMgr.notify(mNotificationId, mBuilder.build());
-
+            mNotifyMgr.notify(mNotificationId, mBuilder.build());
+        }
     }
 }
