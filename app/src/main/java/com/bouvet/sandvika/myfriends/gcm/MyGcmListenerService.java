@@ -18,10 +18,12 @@ public class MyGcmListenerService extends GcmListenerService {
     @Override
     public void onMessageReceived(String from, Bundle data) {
         // TODO: Legg til logikk for å vise varsel
-        if (((String) data.get("type")).equalsIgnoreCase("POSITION_NOTIFICATION")) {
-            System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION");
-        } else if (((String) data.get("type")).equalsIgnoreCase("PROXIMITY_NOTIFICATION")) {
-            System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION");
+        String type = (String) data.get("type");
+        String userName = (String) data.get("userName");
+        if (type.equalsIgnoreCase("POSITION_NOTIFICATION")) {
+            System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION from " + userName);
+        } else if (type.equalsIgnoreCase("PROXIMITY_NOTIFICATION")) {
+            System.out.println("[onMessageReceived] - Got PROXIMITY_NOTIFICATION from " + userName);
             super.onMessageReceived(from, data);
             Intent broadCastIntent = new Intent(BroadCastRecieved).putExtra(BroadCastRecievedMessage, data.getString("message"));
             LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
