@@ -6,14 +6,14 @@ import android.app.Application;
 
 public class App extends Application {
 
-    private NetComponent mNetComponent;
+    private ContextComponent mContextComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         // Dagger%COMPONENT_NAME%
-        mNetComponent = DaggerNetComponent.builder()
+        mContextComponent = DaggerContextComponent.builder()
                 // list of modules that are part of this component need to be created here too
                 .appModule(new AppModule(this)) // This also corresponds to the name of your module: %component_name%Module
                 .netModule(new NetModule("http://myfriends-server.cfapps.io/"))
@@ -24,7 +24,7 @@ public class App extends Application {
         //  mAppComponent = com.codepath.dagger.components.DaggerNetComponent.create();
     }
 
-    public NetComponent getNetComponent() {
-        return mNetComponent;
+    public ContextComponent getContextComponent() {
+        return mContextComponent;
     }
 }

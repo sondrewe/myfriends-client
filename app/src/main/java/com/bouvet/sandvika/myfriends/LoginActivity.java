@@ -3,7 +3,6 @@ package com.bouvet.sandvika.myfriends;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -34,10 +33,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bouvet.sandvika.myfriends.Dagger.App;
-import com.bouvet.sandvika.myfriends.Dagger.NetComponent;
 import com.bouvet.sandvika.myfriends.gcm.RegistrationIntentService;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
 import com.bouvet.sandvika.myfriends.model.User;
@@ -89,7 +86,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         setContentView(R.layout.activity_login);
 
 
-        ((App) getApplication()).getNetComponent().inject(this);
+       ((App) getApplication()).getContextComponent().inject(this);
         service = retrofit.create(MyFriendsRestService.class);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);

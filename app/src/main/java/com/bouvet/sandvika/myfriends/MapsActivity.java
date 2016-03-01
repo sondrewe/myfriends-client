@@ -17,9 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.bouvet.sandvika.myfriends.Dagger.App;
 import com.bouvet.sandvika.myfriends.gcm.MyGcmListenerService;
-import com.bouvet.sandvika.myfriends.model.User;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
-import com.bouvet.sandvika.myfriends.gcm.RegistrationIntentService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -35,7 +33,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapsActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -57,7 +54,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        ((App) getApplication()).getNetComponent().inject(this);
+        ((App) getApplication()).getContextComponent().inject(this);
         service = retrofit.create(MyFriendsRestService.class);
         //region Map init
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
