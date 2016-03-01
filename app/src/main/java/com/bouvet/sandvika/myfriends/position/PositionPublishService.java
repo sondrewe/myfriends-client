@@ -35,7 +35,6 @@ public class PositionPublishService extends Service implements GoogleApiClient.C
     @Inject SharedPreferences sharedPreferences;
     @Inject Retrofit retrofit;
 
-    private String user;
     private GoogleApiClient googleApiClient;
     private MyFriendsRestService service;
 
@@ -50,7 +49,6 @@ public class PositionPublishService extends Service implements GoogleApiClient.C
     @Override
     public void onCreate() {
         ((App) getApplication()).getNetComponent().inject(this);
-        user = sharedPreferences.getString("userName",null);
 
         //region Google LocationServices Api connect
         googleApiClient = new GoogleApiClient.Builder(this)
@@ -66,26 +64,7 @@ public class PositionPublishService extends Service implements GoogleApiClient.C
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                while (true) {
-
-                    Log.d("PositionPublishService", user);
-                    try {
-
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Log.e("PositionPublishService", "publish location service", e);
-                    }
-
-                }
-
-            }
-        });
-        thread.start();
-
+        googleApiClient.connect();
         return 0;
     }
 
@@ -124,9 +103,8 @@ public class PositionPublishService extends Service implements GoogleApiClient.C
 
     @Override
     public void onLocationChanged(Location location) {
-
-
         String user = sharedPreferences.getString("userName",null);
+
         if (user != null) {
 
             Call<Void> locationChanged = service.updateLocation(user, new double[]{location.getLatitude(), location.getLongitude()});
