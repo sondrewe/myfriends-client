@@ -2,6 +2,7 @@ package com.bouvet.sandvika.myfriends.Dagger;
 
 import com.bouvet.sandvika.myfriends.LoginActivity;
 import com.bouvet.sandvika.myfriends.MapsActivity;
+import com.bouvet.sandvika.myfriends.position.PositionPublishService;
 
 import javax.inject.Singleton;
 
@@ -13,8 +14,10 @@ import dagger.Component;
 @Singleton
 @Component(modules={AppModule.class, NetModule.class})
 public interface NetComponent {
+
     void inject(LoginActivity activity);
     void inject(MapsActivity activity);
+    void inject(PositionPublishService positionPublishService);
     // void inject(MyFragment fragment);
     // void inject(MyService service);
 }
