@@ -4,16 +4,16 @@ package com.bouvet.sandvika.myfriends.Dagger;
  * Created by Morten on 20.02.2016.
  */
 import android.app.Application;
+import android.content.Context;
+import android.location.LocationManager;
 
-import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
+
 
 import dagger.Module;
 import dagger.Provides;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+
 
 
 @Module
@@ -30,4 +30,18 @@ public class AppModule {
         return app;
     }
 
+    @Provides
+    public App application() {
+        return this.app;
+    }
+
+    @Provides
+    public Context applicationContext() {
+        return this.app;
+    }
+
+    @Provides
+    public LocationManager locationService(Context context) {
+        return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+    }
 }
