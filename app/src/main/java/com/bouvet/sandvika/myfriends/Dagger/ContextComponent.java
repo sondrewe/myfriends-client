@@ -12,9 +12,8 @@ import dagger.Component;
  */
 @Singleton
 @Component(modules={AppModule.class, NetModule.class})
-public interface NetComponent {
+public interface ContextComponent {
     void inject(LoginActivity activity);
     void inject(MapsActivity activity);
-    // void inject(MyFragment fragment);
-    // void inject(MyService service);
+
 }
