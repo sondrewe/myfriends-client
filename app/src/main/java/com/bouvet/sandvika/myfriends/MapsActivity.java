@@ -26,6 +26,11 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
 
 import javax.inject.Inject;
 
@@ -49,7 +54,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
 
     private GoogleMap googleMap;
-
+    ArrayList<Marker> markers;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +67,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         //endregion
-
+        markers = new ArrayList<>();
         //region Google LocationServices Api connect
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -81,9 +86,14 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
                 String action = intent.getAction();
                 System.out.println("Received broadcastmessage from Registration Intent");
 
-                if(action == MyGcmListenerService.BroadCastRecieved) {
+                if(MyGcmListenerService.BroadCastRecieved.equals(action)) {
                     String key = intent.getStringExtra(MyGcmListenerService.BroadCastRecievedMessage);
                     showUserNearMessage(key);
+                }
+                if(MyGcmListenerService.PositionsRecieved.equals(action)) {
+                    String position = intent.getStringExtra(MyGcmListenerService.PositionsRecievedPosition);
+                    String from = intent.getStringExtra(MyGcmListenerService.PositionsRecievedFrom);
+                    moveOrAddTrack(from,position);
                 }
             }
         };
@@ -91,6 +101,37 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         //endregion
 
 
+
+    }
+    LatLng StringToLatLng(String position)
+    {
+        String[] latlong =  position.split(",");
+        double latitude = Double.parseDouble(latlong[0]);
+        double longitude = Double.parseDouble(latlong[1]);
+        return new LatLng(latitude,longitude);
+    }
+
+    private Marker getMarkerByFrom(String from) {
+        for(Marker marker:markers)
+        {
+            if(marker.getTitle().equals(from))
+                return marker;
+        }
+        return null;
+    }
+    private void moveOrAddTrack(String from, String position)
+    {
+        LatLng pos = StringToLatLng(position);
+        Marker marker = getMarkerByFrom(from);
+        if(marker != null) {
+            marker.setPosition(pos);
+        }else {
+            MarkerOptions markerOptions = new MarkerOptions();
+            markerOptions.position(pos);
+            markerOptions.title(from);
+            Marker newMarker = googleMap.addMarker(markerOptions);
+            markers.add(newMarker);
+        }
 
     }
     private void showUserNearMessage(String message) {
@@ -111,7 +152,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     @Override
     protected void onResume() {
         IntentFilter intentFilter = new IntentFilter(MyGcmListenerService.BroadCastRecieved);
-
+        intentFilter.addAction(MyGcmListenerService.PositionsRecieved);
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
         super.onResume();
@@ -161,7 +202,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode != 0) {
             throw new RuntimeException("Unknown request code received");
         }

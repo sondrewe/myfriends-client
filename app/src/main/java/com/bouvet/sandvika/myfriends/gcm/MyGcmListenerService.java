@@ -15,31 +15,51 @@ public class MyGcmListenerService extends GcmListenerService {
     public static final String BroadCastRecieved = "BroadCastRecieved";
     public static final String BroadCastRecievedMessage = "BroadCastRecievedMessage";
 
+    public static final String PositionsRecieved = "PositionsRecieved";
+    public static final String PositionsRecievedPosition = "PositionsRecievedPosition";
+    public static final String PositionsRecievedFrom = "PositionsRecievedFrom";
+
     @Override
     public void onMessageReceived(String from, Bundle data) {
         // TODO: Legg til logikk for å vise varsel
         String type = (String) data.get("type");
         String userName = (String) data.get("userName");
-        if (type.equalsIgnoreCase("POSITION_NOTIFICATION")) {
-            System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION from " + userName);
-        } else if (type.equalsIgnoreCase("PROXIMITY_NOTIFICATION")) {
-            System.out.println("[onMessageReceived] - Got PROXIMITY_NOTIFICATION from " + userName);
-            super.onMessageReceived(from, data);
-            Intent broadCastIntent = new Intent(BroadCastRecieved).putExtra(BroadCastRecievedMessage, data.getString("message"));
-            LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
-            NotificationCompat.Builder mBuilder =
-                    new NotificationCompat.Builder(this)
-                            .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark)
-                            .setContentTitle("MyFriends")
-                            .setContentText(data.getString("message"));
-
-            // Sets an ID for the notification
-            int mNotificationId = 001;
-// Gets an instance of the NotificationManager service
-            NotificationManager mNotifyMgr =
-                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-// Builds the notification and issues it.
-            mNotifyMgr.notify(mNotificationId, mBuilder.build());
+        if(type!= null) {
+            if (type.equalsIgnoreCase("POSITION_NOTIFICATION")) {
+                System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION from " + userName);
+                InAppPositionNotification(data);
+            } else if (type.equalsIgnoreCase("PROXIMITY_NOTIFICATION")) {
+                System.out.println("[onMessageReceived] - Got PROXIMITY_NOTIFICATION from " + userName);
+                super.onMessageReceived(from, data);
+                InAppProximityNotification(data);
+                ShowNotificationBar(data);
+            }
         }
+    }
+    private void InAppPositionNotification(Bundle data) {
+        Intent broadCastIntent = new Intent(PositionsRecieved).putExtra(PositionsRecievedPosition, data.getString("position"));
+        broadCastIntent.putExtra(PositionsRecievedFrom, data.getString("userName"));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
+    }
+
+    private void InAppProximityNotification(Bundle data) {
+        Intent broadCastIntent = new Intent(BroadCastRecieved).putExtra(BroadCastRecievedMessage, data.getString("message"));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(broadCastIntent);
+    }
+
+    private void ShowNotificationBar(Bundle data) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.common_plus_signin_btn_icon_dark)
+                        .setContentTitle("MyFriends")
+                        .setContentText(data.getString("message"));
+
+        // Sets an ID for the notification
+        int mNotificationId = 1;
+// Gets an instance of the NotificationManager service
+        NotificationManager mNotifyMgr =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+// Builds the notification and issues it.
+        mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
 }
