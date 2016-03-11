@@ -15,6 +15,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.bouvet.sandvika.myfriends.Dagger.App;
 import com.bouvet.sandvika.myfriends.gcm.MyGcmListenerService;
@@ -43,7 +44,7 @@ import retrofit2.Retrofit;
 
 public class MapsActivity extends AppCompatActivity implements LocationListener,OnMarkerClickListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
-
+    static final String TAG= "MapsActivity";
     @Inject
     Retrofit retrofit;
     @Inject
@@ -86,7 +87,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                System.out.println("Received broadcastmessage from Registration Intent");
+                Log.v(TAG,"Received broadcastmessage from Registration Intent");
 
                 if(MyGcmListenerService.BroadCastRecieved.equals(action)) {
                     String key = intent.getStringExtra(MyGcmListenerService.BroadCastRecievedMessage);
@@ -260,12 +261,12 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
             locationChanged.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    System.out.println("[onLocationChanged] success!!");
+                    Log.v(TAG,"[onLocationChanged] success!!");
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    System.out.println("[onLocationChanged] failure!!");
+                    Log.w(TAG,"[onLocationChanged] failure!!");
                 }
             });
         }

@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -79,7 +80,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-
+    static final String TAG= "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,8 +116,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                System.out.println("Received broadcastmessage from Registration Intent");
-                if(action == RegistrationIntentService.ID_TOKEN_RECEIVED) {
+                Log.v(TAG,"Received broadcastmessage from Registration Intent");
+                if(RegistrationIntentService.ID_TOKEN_RECEIVED.equals(action)) {
 
                     String key = intent.getStringExtra(RegistrationIntentService.TOKEN);
                     user = createUser(key);
@@ -145,7 +146,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
 
-                System.out.println("[createUser] Failed!!!!!");
+                Log.e(TAG,"[createUser] Failed!!!!!");
             }
         };
         call.enqueue(callback);

@@ -6,12 +6,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.bouvet.sandvika.myfriends.R;
 import com.google.android.gms.gcm.GcmListenerService;
 
 public class MyGcmListenerService extends GcmListenerService {
 
+    static final String TAG= "MyGcmListenerService";
     public static final String BroadCastRecieved = "BroadCastRecieved";
     public static final String BroadCastRecievedMessage = "BroadCastRecievedMessage";
 
@@ -26,10 +28,10 @@ public class MyGcmListenerService extends GcmListenerService {
         String userName = (String) data.get("userName");
         if(type!= null) {
             if (type.equalsIgnoreCase("POSITION_NOTIFICATION")) {
-                System.out.println("[onMessageReceived] - Got POSITION_NOTIFICATION from " + userName);
+                Log.v(TAG,"[onMessageReceived] - Got POSITION_NOTIFICATION from " + userName);
                 InAppPositionNotification(data);
             } else if (type.equalsIgnoreCase("PROXIMITY_NOTIFICATION")) {
-                System.out.println("[onMessageReceived] - Got PROXIMITY_NOTIFICATION from " + userName);
+                Log.v(TAG,"[onMessageReceived] - Got PROXIMITY_NOTIFICATION from " + userName);
                 super.onMessageReceived(from, data);
                 InAppProximityNotification(data);
                 ShowNotificationBar(data);
