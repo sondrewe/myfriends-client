@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,9 +30,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.ui.IconGenerator;
 
 import java.util.ArrayList;
 
@@ -58,6 +61,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
 
     private GoogleMap googleMap;
     ArrayList<Marker> markers;
+    IconGenerator iconGenerator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +73,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        iconGenerator  = new IconGenerator(this);
         //endregion
         markers = new ArrayList<>();
         //region Google LocationServices Api connect
@@ -144,6 +149,9 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(pos);
             markerOptions.title(from);
+            markerOptions.snippet(from);
+            Bitmap bitmap = iconGenerator.makeIcon(from);
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
             Marker newMarker = googleMap.addMarker(markerOptions);
             markers.add(newMarker);
         }
