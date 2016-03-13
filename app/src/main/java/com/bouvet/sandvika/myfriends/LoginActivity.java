@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
@@ -39,7 +41,22 @@ import com.bouvet.sandvika.myfriends.Dagger.App;
 import com.bouvet.sandvika.myfriends.gcm.RegistrationIntentService;
 import com.bouvet.sandvika.myfriends.http.MyFriendsRestService;
 import com.bouvet.sandvika.myfriends.model.User;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,12 +73,12 @@ import static android.Manifest.permission.READ_CONTACTS;
  * A login screen that offers login via email/password.
  */
 
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor>,GoogleApiClient.OnConnectionFailedListener,OnClickListener {
     @Inject
     Retrofit retrofit;
     @Inject
      SharedPreferences sharedPreferences;
-
+    private static final int RC_SIGN_IN = 9001;
     private MyFriendsRestService service;
 
     /**
@@ -81,12 +98,26 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
     static final String TAG= "LoginActivity";
+    GoogleApiClient mGoogleApiClient;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+// Configure sign-in to request the user's ID, email address, and basic
+// profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestServerAuthCode("491587759486-ptqetteio95ccdl9qugaf0nqgrsiq1tq.apps.googleusercontent.com")
 
+                .build();
+// Build a GoogleApiClient with access to the Google Sign-In API and the
+// options specified by gso.
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
+        findViewById(R.id.sign_in_button).setOnClickListener(this);
        ((App) getApplication()).getContextComponent().inject(this);
         service = retrofit.create(MyFriendsRestService.class);
         // Set up the login form.
@@ -137,9 +168,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         Callback<Void> callback = new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                sharedPreferences.edit().putString("userName",mEmailView.getText().toString()).commit();
-                Intent startMapActivityIntent = new Intent(getApplicationContext(), MapsActivity.class);
-                startActivity(startMapActivityIntent);
+                ShowMapAsUser(mEmailView.getText().toString());
 
             }
 
@@ -154,8 +183,43 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         return user;
 
     }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
+    }
 
+    private void ShowMapAsUser(String user) {
+        sharedPreferences.edit().putString("userName",user).commit();
+        Intent startMapActivityIntent = new Intent(getApplicationContext(), MapsActivity.class);
+        startActivity(startMapActivityIntent);
+    }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        Log.i(TAG,getCertificateSHA1Fingerprint());
+        if (result.isSuccess()) {
+            // Signed in successfully, show authenticated UI.
+            GoogleSignInAccount acct = result.getSignInAccount();
+            ShowMapAsUser(acct.getDisplayName());
+            //mStatusTextView.setText(getString(R.string.signed_in_fmt, acct.getDisplayName()));
+            //updateUI(true);
+
+        } else {
+
+            String message ="Could not sign in " +result.getStatus();
+            Log.e(TAG,message);
+            Snackbar.make(findViewById(android.R.id.content),message, Snackbar.LENGTH_LONG)
+                    .show();
+            // Signed out, show unauthenticated UI.
+            //updateUI(false);
+        }
+    }
     @Override
     protected void onResume() {
         IntentFilter intentFilter = new IntentFilter(RegistrationIntentService.ID_TOKEN_RECEIVED);
@@ -215,7 +279,56 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
+    private String getCertificateSHA1Fingerprint() {
+        PackageManager pm = this.getPackageManager();
+        String packageName = this.getPackageName();
+        int flags = PackageManager.GET_SIGNATURES;
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = pm.getPackageInfo(packageName, flags);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        Signature[] signatures = packageInfo.signatures;
+        byte[] cert = signatures[0].toByteArray();
+        InputStream input = new ByteArrayInputStream(cert);
+        CertificateFactory cf = null;
+        try {
+            cf = CertificateFactory.getInstance("X509");
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        }
+        X509Certificate c = null;
+        try {
+            c = (X509Certificate) cf.generateCertificate(input);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        }
+        String hexString = null;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA1");
+            byte[] publicKey = md.digest(c.getEncoded());
+            hexString = byte2HexFormatted(publicKey);
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+        } catch (CertificateEncodingException e) {
+            e.printStackTrace();
+        }
+        return hexString;
+    }
 
+    public static String byte2HexFormatted(byte[] arr) {
+        StringBuilder str = new StringBuilder(arr.length * 2);
+        for (int i = 0; i < arr.length; i++) {
+            String h = Integer.toHexString(arr[i]);
+            int l = h.length();
+            if (l == 1) h = "0" + h;
+            if (l > 2) h = h.substring(l - 2, l);
+            str.append(h.toUpperCase());
+            if (i < (arr.length - 1)) str.append(':');
+        }
+        return str.toString();
+    }
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -356,6 +469,27 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailView.setAdapter(adapter);
     }
 
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        String message = "Cannot connect to google " + connectionResult.toString();
+        Log.e(TAG,message);
+        Snackbar.make(findViewById(android.R.id.content),message, Snackbar.LENGTH_LONG)
+                .show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sign_in_button:
+                signIn();
+                break;
+            // ...
+        }
+    }
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
 
     private interface ProfileQuery {
         String[] PROJECTION = {

@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.bouvet.sandvika.myfriends.permission.C2D_MESSAGE" />
-   
+
     <permission
         android:name="com.bouvet.sandvika.myfriends.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />

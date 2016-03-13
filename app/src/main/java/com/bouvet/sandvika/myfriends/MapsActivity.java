@@ -73,6 +73,7 @@ public class MapsActivity extends AppCompatActivity implements LocationListener,
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+       this.setTitle(sharedPreferences.getString("userName",null) + "'s Beer Buddies");
         iconGenerator  = new IconGenerator(this);
         //endregion
         markers = new ArrayList<>();
